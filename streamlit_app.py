@@ -1,151 +1,88 @@
 import streamlit as st
-import pandas as pd
-import math
-from pathlib import Path
+import tensorflow as tf
+import librosa
+import numpy as np
+import logging
+import tempfile
 
-# Set the title and favicon that appear in the Browser's tab bar.
-st.set_page_config(
-    page_title='GDP dashboard',
-    page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
-)
-
-# -----------------------------------------------------------------------------
-# Declare some useful functions.
-
-@st.cache_data
-def get_gdp_data():
-    """Grab GDP data from a CSV file.
-
-    This uses caching to avoid having to read the file every time. If we were
-    reading from an HTTP endpoint instead of a file, it's a good idea to set
-    a maximum age to the cache with the TTL argument: @st.cache_data(ttl='1d')
-    """
-
-    # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
-    raw_gdp_df = pd.read_csv(DATA_FILENAME)
-
-    MIN_YEAR = 1960
-    MAX_YEAR = 2022
-
-    # The data above has columns like:
-    # - Country Name
-    # - Country Code
-    # - [Stuff I don't care about]
-    # - GDP for 1960
-    # - GDP for 1961
-    # - GDP for 1962
-    # - ...
-    # - GDP for 2022
-    #
-    # ...but I want this instead:
-    # - Country Name
-    # - Country Code
-    # - Year
-    # - GDP
-    #
-    # So let's pivot all those year-columns into two: Year and GDP
-    gdp_df = raw_gdp_df.melt(
-        ['Country Code'],
-        [str(x) for x in range(MIN_YEAR, MAX_YEAR + 1)],
-        'Year',
-        'GDP',
-    )
-
-    # Convert years from string to integers
-    gdp_df['Year'] = pd.to_numeric(gdp_df['Year'])
-
-    return gdp_df
-
-gdp_df = get_gdp_data()
-
-# -----------------------------------------------------------------------------
-# Draw the actual page
-
-# Set the title that appears at the top of the page.
-'''
-# :earth_americas: GDP dashboard
-
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
-'''
-
-# Add some spacing
-''
-''
-
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
-
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
-
-countries = gdp_df['Country Code'].unique()
-
-if not len(countries):
-    st.warning("Select at least one country")
-
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
-
-''
-''
-''
-
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
-
-st.header('GDP over time', divider='gray')
-
-''
-
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
-)
-
-''
-''
-
-
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
-
-st.header(f'GDP in {to_year}', divider='gray')
-
-''
-
-cols = st.columns(4)
-
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
-
-    with col:
-        first_gdp = first_year[gdp_df['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[gdp_df['Country Code'] == country]['GDP'].iat[0] / 1000000000
-
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
+def extract_features(file_path, max_pad_len=26):
+    try:
+        audio_data, sr = librosa.load(file_path, sr=None)
+    except Exception as e:
+        st.error(f"Error loading audio file: {e}")
+        return None
+    try:
+        chroma_stft = np.mean(librosa.feature.chroma_stft(y=audio_data, sr=sr).T, axis=0)
+        rmse = np.mean(librosa.feature.rms(y=audio_data).T, axis=0)
+        spectral_centroid = np.mean(librosa.feature.spectral_centroid(y=audio_data, sr=sr).T, axis=0)
+        spectral_bandwidth = np.mean(librosa.feature.spectral_bandwidth(y=audio_data, sr=sr).T, axis=0)
+        rolloff = np.mean(librosa.feature.spectral_rolloff(y=audio_data, sr=sr).T, axis=0)
+        zero_crossing_rate = np.mean(librosa.feature.zero_crossing_rate(y=audio_data).T, axis=0)
+        mfccs = np.mean(librosa.feature.mfcc(y=audio_data, sr=sr, n_mfcc=20).T, axis=0)
+        features = np.hstack([chroma_stft, rmse, spectral_centroid, spectral_bandwidth, rolloff, zero_crossing_rate, mfccs])
+        pad_width = max_pad_len - features.shape[0]
+        if pad_width > 0:
+            features = np.pad(features, (0, pad_width), mode='constant')
         else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
+            features = features[:max_pad_len]
+        return features.reshape(1, max_pad_len, 1)
+    except Exception as e:
+        st.error(f"Error extracting features from audio file: {e}")
+        return None
 
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
-        )
+# Load the model
+model_url = "https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/Deep-Fake-Audio-Detection-Model.h5"
+model_path = tf.keras.utils.get_file('Deep-Fake-Audio-Detection-Model.h5', model_url)
+model = tf.keras.models.load_model(model_path)
+print(f"Model url:{model_url}")
+st.markdown("## 🔗 Links")
+st.markdown("""
+[![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](http://datascienceportfol.io/Muhammad_Ahmed_Javed)
+[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](http://www.linkedin.com/in/%20muhammad-ahmed-javedb33900247)
+[![dagshub](https://img.shields.io/badge/dagshub-000?style=for-the-badge&logo=github&logoColor=white)](https://dagshub.com/AJSTYLE-lab)
+[![github](https://img.shields.io/badge/github-000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AJSTYLE-lab)
+""", unsafe_allow_html=True)
+
+st.markdown("<h1 style='text-align: center; text-decoration: underline;'>AudioShield: Leveraging Machine Learning to Detect Deepfake Voices</h1>", unsafe_allow_html=True)
+st.write("**Developer Name:** Muhammad Ahmed Javed")
+st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/Project-image.jfif")
+
+st.write("""
+Welcome to the DeepFake Audio Detection tool. This application leverages advanced deep learning techniques to determine whether an audio file is real or fake. 
+We experimented with two different deep learning models: **Convolutional Neural Networks (CNN)** and **Long Short-Term Memory networks (LSTM)**.
+After extensive testing and evaluation, the LSTM model demonstrated superior performance in detecting deepfake audio, achieving higher accuracy and robustness.
+""")
+
+uploaded_file = st.file_uploader("Choose an audio file", type=["flac"])
+
+if uploaded_file and model is not None:
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.flac') as temp_flac_file:
+        temp_flac_file.write(uploaded_file.read())
+        temp_flac_path = temp_flac_file.name
+
+    features = extract_features(temp_flac_path)
+    if features is not None:
+        prediction = model.predict(features)
+        if prediction > 0.7:
+            st.markdown(f"Audio <b>{uploaded_file.name}</b> is: <b>Real</b>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"Audio <b>{uploaded_file.name}</b> is: <b>Fake</b>", unsafe_allow_html=True)
+    else:
+        st.error("Feature extraction failed. Please try again with a different file.")
+
+# LSTM Model Evaluations
+st.sidebar.title("LSTM Model Evaluations")
+evaluation_option = st.sidebar.selectbox(
+    "Choose an evaluation metric",
+    ("Select an option", "LSTM Model Report", "Actual vs Predicted Label Chart", "LSTM Model Loss", "LSTM Model Accuracy")
+)
+
+if evaluation_option == "LSTM Model Report":
+    st.write("LSTM Model Report")
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/lstm-model-report.png", caption="LSTM Model Report", use_column_width=True)
+elif evaluation_option == "Actual vs Predicted Label Chart":
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/actual-vs-predicted-label.png", caption="Actual vs Predicted Label Chart", use_column_width=True)    
+elif evaluation_option == "LSTM Model Loss":
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/lstm-model-loss.png", caption="LSTM Model Loss", use_column_width=True)
+elif evaluation_option == "LSTM Model Accuracy":
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/lstm-model-accuracy.png", caption="LSTM Model Accuracy", use_column_width=True)

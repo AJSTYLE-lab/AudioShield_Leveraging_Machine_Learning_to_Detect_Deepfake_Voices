@@ -1,2 +1,5 @@
 streamlit
-pandas
+tensorflow==2.15.0
+librosa
+numpy
+logging
