@@ -31,3 +31,10 @@ This project aims to develop a machine learning system to detect deepfake voices
 
 [Dagshub Repository](https://dagshub.com/Omdena/BangladeshChapter_AudioShield/src/main/s3:/BangladeshChapter_AudioShield/data)
 
+*Note:*
+
+This repository contain all the material which I have contributed to the project
+
+[Click Here to see the Main DagHub Repository of Omdena.Inc](https://dagshub.com/Omdena/BangladeshChapter_AudioShield)
+
+
