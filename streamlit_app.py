@@ -27,8 +27,24 @@ download_file(model_url, model_path)
 download_file(scaler_url, scaler_path)
 svm_model = joblib.load(model_path)
 scaler = joblib.load(scaler_path)
-st.title("AudioShield: Leveraging Machine Learning to Detect Deepfake Voices")
-st.write("Welcome to the DeepFake Audio Detection tool. This application leverages an SVM model to determine whether an audio file is real or fake.")
+st.markdown("## 🔗 Links")
+st.markdown("""
+[![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](http://datascienceportfol.io/Muhammad_Ahmed_Javed)
+[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](http://www.linkedin.com/in/%20muhammad-ahmed-javedb33900247)
+[![dagshub](https://img.shields.io/badge/dagshub-000?style=for-the-badge&logo=github&logoColor=white)](https://dagshub.com/AJSTYLE-lab)
+[![github](https://img.shields.io/badge/github-000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AJSTYLE-lab)
+""", unsafe_allow_html=True)
+
+st.markdown("<h1 style='text-align: center; text-decoration: underline;'>AudioShield: Leveraging Machine Learning to Detect Deepfake Voices</h1>", unsafe_allow_html=True)
+st.write("**Developer Name:** Muhammad Ahmed Javed")
+st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/Project-image.jfif")
+
+st.write("""
+Welcome to the DeepFake Audio Detection tool. This application leverages advanced deep learning techniques to determine whether an audio file is real or fake. 
+We experimented with two different deep learning models: **Convolutional Neural Networks (CNN)**, **Long Short-Term Memory networks (LSTM)**. and **Support Vector Machine (SVM Model)**
+After extensive testing and evaluation, the SVM model demonstrated superior performance in detecting deepfake audio, achieving higher accuracy (81.93%) and robustness.
+""")
+
 uploaded_file = st.file_uploader("Choose an audio file", type=["flac"])
 if uploaded_file:
     with tempfile.NamedTemporaryFile(delete=False, suffix='.flac') as temp_flac_file:
