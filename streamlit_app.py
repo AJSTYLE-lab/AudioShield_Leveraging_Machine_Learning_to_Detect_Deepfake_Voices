@@ -59,3 +59,18 @@ if uploaded_file:
         st.write(f"The audio file '{uploaded_file.name}' is predicted to be: {label}")
     else:
         st.error("Feature extraction failed. Please try again with a different file.")
+# SVM Model Evaluations
+st.sidebar.title("SVM Model Evaluations")
+evaluation_option = st.sidebar.selectbox(
+    "Choose an evaluation metric",
+    ("Select an option", "SVM Model Report", "Actual vs Predicted Label Chart", "SVM Model Loss", "SVM Model Accuracy")
+)
+if evaluation_option == "SVM Model Report":
+    st.write("SVM Model Report")
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/svm-model-report.png", caption="SVM Model Report", use_column_width=True)
+elif evaluation_option == "Actual vs Predicted Label Chart":
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/svm-actual-vs-predict-label.png", caption="Actual vs Predicted Label Chart", use_column_width=True)    
+elif evaluation_option == "SVM Model Loss":
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/svm-model-loss.png", caption="SVM Model Loss", use_column_width=True)
+elif evaluation_option == "SVM Model Accuracy":
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/svm-model-accuracy.png", caption="SVM Model Accuracy", use_column_width=True)
