@@ -49,8 +49,8 @@ st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning
 
 st.write("""
 Welcome to the DeepFake Audio Detection tool. This application leverages advanced deep learning techniques to determine whether an audio file is real or fake. 
-We experimented with two different deep learning models: **Convolutional Neural Networks (CNN)** and **Long Short-Term Memory networks (LSTM)**.
-After extensive testing and evaluation, the LSTM model demonstrated superior performance in detecting deepfake audio, achieving higher accuracy and robustness.
+We experimented with two different deep learning models: **Convolutional Neural Networks (CNN)**, **Long Short-Term Memory networks (LSTM)**. and **Support Vector Machine (SVM Model)**
+After extensive testing and evaluation, the SVM model demonstrated superior performance in detecting deepfake audio, achieving higher accuracy (81.93%) and robustness.
 """)
 
 uploaded_file = st.file_uploader("Choose an audio file", type=["flac"])
@@ -71,18 +71,18 @@ if uploaded_file and model is not None:
         st.error("Feature extraction failed. Please try again with a different file.")
 
 # LSTM Model Evaluations
-st.sidebar.title("LSTM Model Evaluations")
+st.sidebar.title("SVM Model Evaluations")
 evaluation_option = st.sidebar.selectbox(
     "Choose an evaluation metric",
-    ("Select an option", "LSTM Model Report", "Actual vs Predicted Label Chart", "LSTM Model Loss", "LSTM Model Accuracy")
+    ("Select an option", "SVM Model Report", "Actual vs Predicted Label Chart", "SVM Model Loss", "SVM Model Accuracy")
 )
 
-if evaluation_option == "LSTM Model Report":
-    st.write("LSTM Model Report")
-    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/lstm-model-report.png", caption="LSTM Model Report", use_column_width=True)
+if evaluation_option == "SVM Model Report":
+    st.write("SVM Model Report")
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/svm-model-report.png", caption="SVM Model Report", use_column_width=True)
 elif evaluation_option == "Actual vs Predicted Label Chart":
-    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/actual-vs-predicted-label.png", caption="Actual vs Predicted Label Chart", use_column_width=True)    
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/svm-actual-vs-predict-label.png", caption="Actual vs Predicted Label Chart", use_column_width=True)    
 elif evaluation_option == "LSTM Model Loss":
-    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/lstm-model-loss.png", caption="LSTM Model Loss", use_column_width=True)
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/svm-model-loss.png", caption="SVM Model Loss", use_column_width=True)
 elif evaluation_option == "LSTM Model Accuracy":
-    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/lstm-model-accuracy.png", caption="LSTM Model Accuracy", use_column_width=True)
+    st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/svm-model-accuracy.png", caption="SVM Model Accuracy", use_column_width=True)
