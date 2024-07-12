@@ -4,37 +4,23 @@ import librosa
 import numpy as np
 import logging
 import tempfile
-
-def extract_features(file_path, max_pad_len=26):
-    try:
-        audio_data, sr = librosa.load(file_path, sr=None)
-    except Exception as e:
-        st.error(f"Error loading audio file: {e}")
-        return None
-    try:
-        chroma_stft = np.mean(librosa.feature.chroma_stft(y=audio_data, sr=sr).T, axis=0)
-        rmse = np.mean(librosa.feature.rms(y=audio_data).T, axis=0)
-        spectral_centroid = np.mean(librosa.feature.spectral_centroid(y=audio_data, sr=sr).T, axis=0)
-        spectral_bandwidth = np.mean(librosa.feature.spectral_bandwidth(y=audio_data, sr=sr).T, axis=0)
-        rolloff = np.mean(librosa.feature.spectral_rolloff(y=audio_data, sr=sr).T, axis=0)
-        zero_crossing_rate = np.mean(librosa.feature.zero_crossing_rate(y=audio_data).T, axis=0)
-        mfccs = np.mean(librosa.feature.mfcc(y=audio_data, sr=sr, n_mfcc=20).T, axis=0)
-        features = np.hstack([chroma_stft, rmse, spectral_centroid, spectral_bandwidth, rolloff, zero_crossing_rate, mfccs])
-        pad_width = max_pad_len - features.shape[0]
-        if pad_width > 0:
-            features = np.pad(features, (0, pad_width), mode='constant')
-        else:
-            features = features[:max_pad_len]
-        return features.reshape(1, max_pad_len, 1)
-    except Exception as e:
-        st.error(f"Error extracting features from audio file: {e}")
-        return None
-
+import joblib
+def extract_features(audio_file):
+    y, sr = librosa.load(audio_file, sr=None)
+    chroma_stft = np.mean(librosa.feature.chroma_stft(y=y, sr=sr))
+    rmse = np.mean(librosa.feature.rms(y=y))
+    spectral_centroid = np.mean(librosa.feature.spectral_centroid(y=y, sr=sr))
+    spectral_bandwidth = np.mean(librosa.feature.spectral_bandwidth(y=y, sr=sr))
+    rolloff = np.mean(librosa.feature.spectral_rolloff(y=y, sr=sr))
+    zero_crossing_rate = np.mean(librosa.feature.zero_crossing_rate(y))
+    mfcc = np.mean(librosa.feature.mfcc(y=y, sr=sr), axis=1)
+    features = np.array([chroma_stft, rmse, spectral_centroid, spectral_bandwidth, rolloff, zero_crossing_rate, *mfcc])
+    return features
 # Load the model
-model_url = "https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/raw/main/Deep-Fake-Audio-Detection-Model.h5"
-model_path = tf.keras.utils.get_file('Deep-Fake-Audio-Detection-Model.h5', model_url)
-model = tf.keras.models.load_model(model_path)
-print(f"Model url:{model_url}")
+model_path = "path/to/your/svm_model.pkl"  # Update with your SVM model path
+scaler_path = "path/to/your/scaler.pkl"    # Update with your scaler path
+svm_model = joblib.load(model_path)
+scaler = joblib.load(scaler_path)
 st.markdown("## 🔗 Links")
 st.markdown("""
 [![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](http://datascienceportfol.io/Muhammad_Ahmed_Javed)
