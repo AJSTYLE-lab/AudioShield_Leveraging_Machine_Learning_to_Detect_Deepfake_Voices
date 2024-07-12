@@ -15,9 +15,9 @@ def extract_features(audio_file):
     features = np.array([chroma_stft, rmse, spectral_centroid, spectral_bandwidth, rolloff, zero_crossing_rate, *mfcc])
     return features
 model_path = "https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/blob/main/svm_model.pkl"
-scaler_path = "path/to/your/scaler.pkl"    # Update with your scaler path
-svm_model = joblib.load(model_path)
-scaler = joblib.load(scaler_path)
+scaler_path="https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning_to_Detect_Deepfake_Voices/blob/main/scaler.pkl"
+svm_model=joblib.load(model_path)
+scaler=joblib.load(scaler_path)
 st.title("AudioShield: Leveraging Machine Learning to Detect Deepfake Voices")
 st.write("Welcome to the DeepFake Audio Detection tool. This application leverages an SVM model to determine whether an audio file is real or fake.")
 uploaded_file = st.file_uploader("Choose an audio file", type=["flac"])
