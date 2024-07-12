@@ -3,3 +3,5 @@ tensorflow==2.15.0
 librosa
 numpy
 logging
+scikit-learn
+joblib
