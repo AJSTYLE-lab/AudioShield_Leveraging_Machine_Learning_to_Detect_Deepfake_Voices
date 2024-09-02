@@ -41,7 +41,7 @@ st.image("https://github.com/AJSTYLE-lab/AudioShield_Leveraging_Machine_Learning
 
 st.write("""
 Welcome to the DeepFake Audio Detection tool. This application leverages advanced deep learning techniques to determine whether an audio file is real or fake. 
-We experimented with two different deep learning models: **Convolutional Neural Networks (CNN)**, **Long Short-Term Memory networks (LSTM)**. and **Support Vector Machine (SVM Model)**
+We experimented with three different deep learning models: **Convolutional Neural Networks (CNN)**, **Long Short-Term Memory networks (LSTM)**. and **Support Vector Machine (SVM Model)**
 After extensive testing and evaluation, the SVM model demonstrated superior performance in detecting deepfake audio, achieving higher accuracy (81.93%) and robustness.
 """)
 
